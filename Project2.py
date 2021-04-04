@@ -77,11 +77,16 @@ def get_book_summary(book_url):
     r = requests.get(book_url)
     soup = BeautifulSoup(r.text, "html.parser")
     titleTag = soup.find('h1', id="bookTitle")
+    seriesTag = soup.find('h2', id="bookSeries")
     authorTag = soup.find('a', class_="authorName")
     pagesTag = soup.find('span', itemprop="numberOfPages")
     title = titleTag.text
     title = title.lstrip()
     title = title.rstrip()
+    series = seriesTag.find('a').text
+    series = series.lstrip()
+    series = series.rstrip()
+    title = title + " " + series
     author = authorTag.find('span').text
     pages = pagesTag.text.split()
     pagesNum = int(pages[0])
@@ -100,7 +105,22 @@ def summarize_best_books(filepath):
     ("Fiction", "The Testaments (The Handmaid's Tale, #2)", "https://www.goodreads.com/choiceawards/best-fiction-books-2020") 
     to your list of tuples.
     """
-    pass
+    l = []
+    source_dir = os.path.dirname(__file__)
+    full_path = os.path.join(source_dir, filepath)
+    soup = BeautifulSoup(open(full_path, encoding="utf8"), "html.parser")
+    containers = soup.find_all('div', class_="category clearFix")
+    for i in containers:
+        link = "https://www.goodreads.com" + i.find('a').get('href')
+        category = i.find('h4', class_="category__copy").text
+        category = category.rstrip()
+        category = category.lstrip()
+        title = i.find('img', class_="category__winnerImage").get('alt')
+        t = (category, title, link)
+        l.append(t)
+    return l
+
+    
 
 
 def write_csv(data, filename):
@@ -123,7 +143,14 @@ def write_csv(data, filename):
 
     This function should not return anything.
     """
-    pass
+    source_dir = os.path.dirname(__file__)
+    full_path = os.path.join(source_dir, filename)
+    with open(full_path, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile, delimiter=',')
+        writer.writerow(["Book title", "Author Name"])
+        for i in data:
+            writer.writerow(i)
+    return
 
 
 def extra_credit(filepath):
@@ -138,7 +165,7 @@ def extra_credit(filepath):
 class TestCases(unittest.TestCase):
 
     # call get_search_links() and save it to a static variable: search_urls
-
+    search_urls = get_search_links()
 
     def test_get_titles_from_search_results(self):
         # call get_titles_from_search_results() on search_results.htm and save to a local variable
@@ -220,7 +247,8 @@ class TestCases(unittest.TestCase):
 if __name__ == '__main__':
     #print(extra_credit("extra_credit.htm"))
     #unittest.main(verbosity=2)
-    print(get_book_summary("https://www.goodreads.com/book/show/6931452-the-kingdom-of-fantasy?from_search=true&from_srp=true&qid=NwUsLiA2Nc&rank=7"))
+    print(get_titles_from_search_results("search_results.htm"))
+    write_csv(get_titles_from_search_results("search_results.htm"), "test.csv")
 
 
 
