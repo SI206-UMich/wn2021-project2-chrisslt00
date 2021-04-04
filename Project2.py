@@ -14,8 +14,24 @@ def get_titles_from_search_results(filename):
 
     [('Book title 1', 'Author 1'), ('Book title 2', 'Author 2')...]
     """
-
-    pass
+    l = []
+    source_dir = os.path.dirname(__file__)
+    full_path = os.path.join(source_dir, filename)
+    soup = BeautifulSoup(open(full_path), "html.parser")
+    authors = soup.find_all('a', class_="authorName")
+    a = []
+    titles = soup.find_all('a', class_="bookTitle")
+    t = []
+    for i in authors:
+        author = i.find('span').text
+        #author = author.rstrip()
+        a.append(author)
+    for j in titles:
+        title = j.find('span').text
+        #title = title.rstrip()
+        t.append(title)
+    l = list(zip(t, a))
+    return l
 
 
 def get_search_links():
@@ -31,8 +47,18 @@ def get_search_links():
     “https://www.goodreads.com/book/show/kdkd".
 
     """
+    l = []
+    link = "https://www.goodreads.com/search?q=fantasy&qid=NwUsLiA2Nc"
+    r = requests.get(link)
+    soup = BeautifulSoup(r.text, "html.parser")
+    links = soup.find_all('a', class_="bookTitle")
+    for i in range(10):
+        url = links[i].get('href')
+        url = "https://www.goodreads.com" + url
+        l.append(url)
+    return l
 
-    pass
+
 
 
 def get_book_summary(book_url):
@@ -48,8 +74,19 @@ def get_book_summary(book_url):
     You can easily capture CSS selectors with your browser's inspector window.
     Make sure to strip() any newlines from the book title and number of pages.
     """
-
-    pass
+    r = requests.get(book_url)
+    soup = BeautifulSoup(r.text, "html.parser")
+    titleTag = soup.find('h1', id="bookTitle")
+    authorTag = soup.find('a', class_="authorName")
+    pagesTag = soup.find('span', itemprop="numberOfPages")
+    title = titleTag.text
+    title = title.lstrip()
+    title = title.rstrip()
+    author = authorTag.find('span').text
+    pages = pagesTag.text.split()
+    pagesNum = int(pages[0])
+    t = (title, author, pagesNum)
+    return t
 
 
 def summarize_best_books(filepath):
@@ -115,15 +152,17 @@ class TestCases(unittest.TestCase):
         # check that the first book and author tuple is correct (open search_results.htm and find it)
 
         # check that the last title is correct (open search_results.htm and find it)
+        pass
 
     def test_get_search_links(self):
         # check that TestCases.search_urls is a list
 
         # check that the length of TestCases.search_urls is correct (10 URLs)
 
-
         # check that each URL in the TestCases.search_urls is a string
+
         # check that each URL contains the correct url for Goodreads.com followed by /book/show/
+        pass
 
 
     def test_get_book_summary(self):
@@ -141,6 +180,7 @@ class TestCases(unittest.TestCase):
             # check that the third element in the tuple, i.e. pages is an int
 
             # check that the first book in the search has 337 pages
+            pass
 
 
     def test_summarize_best_books(self):
@@ -155,6 +195,7 @@ class TestCases(unittest.TestCase):
         # check that the first tuple is made up of the following 3 strings:'Fiction', "The Midnight Library", 'https://www.goodreads.com/choiceawards/best-fiction-books-2020'
 
         # check that the last tuple is made up of the following 3 strings: 'Picture Books', 'Antiracist Baby', 'https://www.goodreads.com/choiceawards/best-picture-books-2020'
+        pass
 
 
     def test_write_csv(self):
@@ -172,12 +213,14 @@ class TestCases(unittest.TestCase):
         # check that the next row is 'Harry Potter and the Deathly Hallows (Harry Potter, #7)', 'J.K. Rowling'
 
         # check that the last row is 'Harry Potter: The Prequel (Harry Potter, #0.5)', 'J.K. Rowling'
+        pass
 
 
 
 if __name__ == '__main__':
-    print(extra_credit("extra_credit.htm"))
-    unittest.main(verbosity=2)
+    #print(extra_credit("extra_credit.htm"))
+    #unittest.main(verbosity=2)
+    print(get_book_summary("https://www.goodreads.com/book/show/6931452-the-kingdom-of-fantasy?from_search=true&from_srp=true&qid=NwUsLiA2Nc&rank=7"))
 
 
 
